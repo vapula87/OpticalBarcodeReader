@@ -18,7 +18,7 @@ public class DataMatrix implements BarcodeIO {
    
    public DataMatrix(String text) {
       image = new BarcodeImage();
-      this.text = text;
+      readText(text);
    }
    
     @Override
@@ -30,14 +30,19 @@ public class DataMatrix implements BarcodeIO {
           actualWidth = computeSignalWidth();
           return true;
        }
-       catch(Exception e) {
+       catch(CloneNotSupportedException e) {
           return false;
        }
     }
     
    @Override
     public boolean readText(String text) {
-        return false;
+       if (text == null || text.equals("") ||
+               text.length() > (BarcodeImage.MAX_WIDTH-2)) return false;
+       else {
+           this.text = text;
+           return true;
+       }
     }
 
     @Override
@@ -49,6 +54,7 @@ public class DataMatrix implements BarcodeIO {
 
     @Override
     public boolean translateImageToText() {
+        //TODO Michael
         return false;
     }
     
@@ -59,11 +65,11 @@ public class DataMatrix implements BarcodeIO {
     
     @Override
     public void displayImageToConsole() {
-
+        //TODO Michael
     }
     
     private void cleanImage() {
-       // TODO Auto-generated method stub
+        //TODO Michael
     }
     
     //Computes and returns width of image counting from bottom left
@@ -91,33 +97,104 @@ public class DataMatrix implements BarcodeIO {
     }
     /*
      * Helper method for generateImageFromText() which checks
-     * if there is a '*' or ' ' and writes the character to 
+     * if there is a '*' or ' ' and writes the character to
      * the column.
      */
     private boolean writeCharToCol(int col, int code) {
-       /*
-        * Converts code to binary string, then to character array
-        * to allow us to loop through and check each character
-        */
-       String binaryString = Integer.toBinaryString(code);
-       char[] binaryChar = new char[binaryString.length()];
-       binaryChar = binaryString.toCharArray();
-       //Counter to keep track of place in column, starting from bottom
-       int colIndexCounter = binaryChar.length;
-       //Set bottom of column to '*' for closed limitation line
-       image.setPixel(BarcodeImage.MAX_HEIGHT - 1, col, true);
-       //Loops through array, checks character, and writes to column
-       for(int i = BarcodeImage.MAX_HEIGHT - 2; i > 0; i--) {
-          if(colIndexCounter > -1 || i > BarcodeImage.MAX_HEIGHT - 1) {
-             if(binaryChar[colIndexCounter] == '1')
-                image.setPixel(i, col, true);
-             else
+        /*
+         * Converts code to binary string, then to character array
+         * to allow us to loop through and check each character
+         */
+        String binaryString = Integer.toBinaryString(code);
+        char[] binaryChar = new char[binaryString.length()];
+        binaryChar = binaryString.toCharArray();
+        //Counter to keep track of place in column, starting from bottom
+        int colIndexCounter = binaryChar.length;
+        //Set bottom of column to '*' for closed limitation line
+        image.setPixel(BarcodeImage.MAX_HEIGHT - 1, col, true);
+        //Loops through array, checks character, and writes to column
+        for(int i = BarcodeImage.MAX_HEIGHT - 2; i > 0; i--) {
+            if(colIndexCounter > -1 || i > BarcodeImage.MAX_HEIGHT - 1) {
+                if(binaryChar[colIndexCounter] == '1')
+                    image.setPixel(i, col, true);
+                else
+                    image.setPixel(i, col, false);
+            }
+            else
                 image.setPixel(i, col, false);
-          }
-          else
-             image.setPixel(i, col, false);
-          colIndexCounter--;
-       }
-       return true;
+            colIndexCounter--;
+        }
+        return true;
     }
+
+    public int getActualWidth() { return actualWidth; }
+    public int getActualHeight() { return actualHeight; }
+    public static void main(String[] args) {
+        String[] sImageIn =
+                {
+                        "                                               ",
+                        "                                               ",
+                        "                                               ",
+                        "     * * * * * * * * * * * * * * * * * * * * * ",
+                        "     *                                       * ",
+                        "     ****** **** ****** ******* ** *** *****   ",
+                        "     *     *    ****************************** ",
+                        "     * **    * *        **  *    * * *   *     ",
+                        "     *   *    *  *****    *   * *   *  **  *** ",
+                        "     *  **     * *** **   **  *    **  ***  *  ",
+                        "     ***  * **   **  *   ****    *  *  ** * ** ",
+                        "     *****  ***  *  * *   ** ** **  *   * *    ",
+                        "     ***************************************** ",
+                        "                                               ",
+                        "                                               ",
+                        "                                               "
+
+                };
+
+
+        String[] sImageIn_2 =
+                {
+                        "                                          ",
+                        "                                          ",
+                        "* * * * * * * * * * * * * * * * * * *     ",
+                        "*                                    *    ",
+                        "**** *** **   ***** ****   *********      ",
+                        "* ************ ************ **********    ",
+                        "** *      *    *  * * *         * *       ",
+                        "***   *  *           * **    *      **    ",
+                        "* ** * *  *   * * * **  *   ***   ***     ",
+                        "* *           **    *****  *   **   **    ",
+                        "****  *  * *  * **  ** *   ** *  * *      ",
+                        "**************************************    ",
+                        "                                          ",
+                        "                                          ",
+                        "                                          ",
+                        "                                          "
+
+                };
+
+        BarcodeImage bc = new BarcodeImage(sImageIn);
+        DataMatrix dm = new DataMatrix(bc);
+
+        // First secret message
+        dm.translateImageToText();
+        dm.displayTextToConsole();
+        dm.displayImageToConsole();
+
+        // second secret message
+        bc = new BarcodeImage(sImageIn_2);
+        dm.scan(bc);
+        dm.translateImageToText();
+        dm.displayTextToConsole();
+        dm.displayImageToConsole();
+
+        // create your own message
+        dm.readText("What a great resume builder this is!");
+        dm.generateImageFromText();
+        dm.displayTextToConsole();
+        dm.displayImageToConsole();
+
+
+    }
+
 }
