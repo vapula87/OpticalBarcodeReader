@@ -25,9 +25,9 @@ public class DataMatrix implements BarcodeIO {
     public boolean scan(BarcodeImage bc) {
        try {
           image = (BarcodeImage) bc.clone();
-          this.cleanImage();
-          this.actualHeight = this.computeSignalHeight();
-          this.actualWidth = this.computeSignalWidth();
+          cleanImage();
+          actualHeight = computeSignalHeight();
+          actualWidth = computeSignalWidth();
           return true;
        }
        catch(CloneNotSupportedException e) {
@@ -47,7 +47,9 @@ public class DataMatrix implements BarcodeIO {
 
     @Override
     public boolean generateImageFromText() {
-        return false;
+       //TODO
+       writeCharToCol(0, 0);
+       return false;
     }
 
     @Override
@@ -70,10 +72,11 @@ public class DataMatrix implements BarcodeIO {
         //TODO Michael
     }
     
+    //Computes and returns width of image counting from bottom left
     private int computeSignalWidth() {
        int width = 0;
        for (int i = 0; i < BarcodeImage.MAX_WIDTH; i++) {
-          if(this.image.getPixel(BarcodeImage.MAX_WIDTH - 1, i))
+          if(image.getPixel(BarcodeImage.MAX_WIDTH - 1, i))
              width++;
           else
              break;
@@ -81,20 +84,52 @@ public class DataMatrix implements BarcodeIO {
        return width;
     }
     
+    //Computes and returns height of image counting from bottom left
     private int computeSignalHeight() {
        int height = 0;
        for (int i = 0; i < BarcodeImage.MAX_HEIGHT; i++) {
-          if(this.image.getPixel(i, 0))
+          if(image.getPixel(i, 0))
              height++;
           else
              break;
        }
        return height;
     }
+    /*
+     * Helper method for generateImageFromText() which checks
+     * if there is a '*' or ' ' and writes the character to
+     * the column.
+     */
+    private boolean writeCharToCol(int col, int code) {
+        /*
+         * Converts code to binary string, then to character array
+         * to allow us to loop through and check each character
+         */
+        String binaryString = Integer.toBinaryString(code);
+        char[] binaryChar = new char[binaryString.length()];
+        binaryChar = binaryString.toCharArray();
+        //Counter to keep track of place in column, starting from bottom
+        int colIndexCounter = binaryChar.length;
+        //Set bottom of column to '*' for closed limitation line
+        image.setPixel(BarcodeImage.MAX_HEIGHT - 1, col, true);
+        //Loops through array, checks character, and writes to column
+        for(int i = BarcodeImage.MAX_HEIGHT - 2; i > 0; i--) {
+            if(colIndexCounter > -1 || i > BarcodeImage.MAX_HEIGHT - 1) {
+                if(binaryChar[colIndexCounter] == '1')
+                    image.setPixel(i, col, true);
+                else
+                    image.setPixel(i, col, false);
+            }
+            else
+                image.setPixel(i, col, false);
+            colIndexCounter--;
+        }
+        return true;
+    }
+
     public int getActualWidth() { return actualWidth; }
     public int getActualHeight() { return actualHeight; }
-    public static void main(String[] args)
-    {
+    public static void main(String[] args) {
         String[] sImageIn =
                 {
                         "                                               ",
@@ -115,7 +150,6 @@ public class DataMatrix implements BarcodeIO {
                         "                                               "
 
                 };
-
 
 
         String[] sImageIn_2 =
@@ -141,7 +175,7 @@ public class DataMatrix implements BarcodeIO {
 
         BarcodeImage bc = new BarcodeImage(sImageIn);
         DataMatrix dm = new DataMatrix(bc);
-        
+
         // First secret message
         dm.translateImageToText();
         dm.displayTextToConsole();
@@ -162,4 +196,5 @@ public class DataMatrix implements BarcodeIO {
 
 
     }
+
 }
