@@ -14,22 +14,28 @@ class BarcodeImage implements Cloneable
    public BarcodeImage()
    {
       imageData = new boolean[MAX_HEIGHT][MAX_WIDTH];
-      for (boolean data[] : imageData)
-         for (boolean value : data)
-            value = false;
    }
    //Initiate the string to get the data
    public BarcodeImage(String[] strData)
    {
+      this();
+      int index = strData.length - 1;
       if (checkSize(strData))
       {
-         imageData = new boolean[MAX_HEIGHT][MAX_WIDTH];
-         int row, col;
-         for (row = 0; row < strData.length; row++)
+         for (int row = imageData.length - 1; row >=0; row--)
          {
-            for (col = 0; col < strData[row].length(); col++)
-               if (strData[row].charAt(col) == '*')
-                  setPixel(row, col, true);
+            for (int col = 0; col < imageData[row].length; col++)
+            {
+               if (index >= 0 && col < strData[index].length())
+               {
+                  if (strData[index].charAt(col) == ' ')
+                  {
+                     setPixel(row, col, false);
+                  } else
+                     setPixel(row, col, true);
+               }
+            }
+            index--;
          }
       }
    }
@@ -50,7 +56,7 @@ class BarcodeImage implements Cloneable
       }
       return false;
    }
- //checkSize to make sure that the Max height and width aren't more than the max height and width
+   //checkSize to make sure that the Max height and width aren't more than the max height and width
    private boolean checkSize(String[] data)
    {
       if (data != null)
