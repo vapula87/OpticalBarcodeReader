@@ -11,7 +11,7 @@ public class DataMatrix implements BarcodeIO {
       text = "";
       actualWidth = actualHeight = 0;
    }
-   
+
    public DataMatrix(BarcodeImage image) {
       text = "";
       scan(image);
@@ -22,53 +22,58 @@ public class DataMatrix implements BarcodeIO {
       readText(text);
    }
    
-    @Override
-    public boolean scan(BarcodeImage bc) {
-       try {
-          image = (BarcodeImage) bc.clone();
-          cleanImage();
-          actualHeight = computeSignalHeight();
-          actualWidth = computeSignalWidth();
-          return true;
-       }
-       catch(CloneNotSupportedException e) {
-          return false;
-       }
-    }
+   @Override
+   public boolean scan(BarcodeImage bc) {
+      try {
+         image = (BarcodeImage) bc.clone();
+         cleanImage();
+         actualHeight = computeSignalHeight();
+         actualWidth = computeSignalWidth();
+         return true;
+      }
+      catch(CloneNotSupportedException e) {
+         return false;
+      }
+   }
     
    @Override
-    public boolean readText(String text) {
-       if (text == null || text.equals("") ||
-               text.length() > (BarcodeImage.MAX_WIDTH-2)) return false;
-       else {
-           this.text = text;
-           return true;
-       }
-    }
+   public boolean readText(String text) {
+      if (text == null || text.equals("") ||
+              text.length() > (BarcodeImage.MAX_WIDTH-2)) return false;
+      else {
+         this.text = text;
+          return true;
+      }
+   }
 
-    @Override
-    public boolean generateImageFromText() {
-       //TODO Katie
-       writeCharToCol(0, 0);
-       return false;
-    }
+   @Override
+   public boolean generateImageFromText() {
+      //TODO Katie
+      clearImage();
+      char[] textCharArray = text.toCharArray();
+      final int MAX_ACTUAL_HEIGHT = 10;
+      for(int i = BarcodeImage.MAX_HEIGHT - 1; i > MAX_ACTUAL_HEIGHT; i--) {
+         
+      }
+      return false;
+   }
 
-    @Override
-    public boolean translateImageToText() {
-        //TODO Michael
-        return false;
-    }
+   @Override
+   public boolean translateImageToText() {
+      //TODO Michael
+      return false;
+   }
     
-    @Override
-    public void displayTextToConsole() {
-       System.out.println(text);
-    }
+   @Override
+   public void displayTextToConsole() {
+      System.out.println(text);
+   }
     
-    @Override
-    public void displayImageToConsole() {
-        //TODO Michael
-    }
-    
+   @Override
+   public void displayImageToConsole() {
+      //TODO Michael
+   }
+
     private void cleanImage() {
         boolean found = false;
         for (int i = BarcodeImage.MAX_HEIGHT-1; i >= 0; i--) {
@@ -93,12 +98,6 @@ public class DataMatrix implements BarcodeIO {
             colTracker = 0;
         }
     }
-    private void clearImage() {
-        for (int i = 0; i < BarcodeImage.MAX_HEIGHT; i++) {
-            for (int j = 0; j < BarcodeImage.MAX_WIDTH; j++)
-                image.setPixel(i,j,false);
-        }
-    }
     private void displayRawImage() {
        image.displayToConsole();
     }
@@ -121,42 +120,50 @@ public class DataMatrix implements BarcodeIO {
        for (int i = BarcodeImage.MAX_HEIGHT-1; i >= 0; i--) {
           if(image.getPixel(i, 0))
              height++;
+         else
+            break;
+      }
+      return height;
+   }
+   /*
+    * Helper method for generateImageFromText() which checks
+    * if there is a '*' or ' ' and writes the character to
+    * the column.
+    */
+   private boolean writeCharToCol(int col, int code) {
+      /*
+       * Converts code to binary string, then to character array
+       * to allow us to loop through and check each character
+       */
+      String binaryString = Integer.toBinaryString(code);
+      char[] binaryChar = new char[binaryString.length()];
+      binaryChar = binaryString.toCharArray();
+      //Counter to keep track of place in column, starting from bottom
+      int colIndexCounter = binaryChar.length;
+      //Set bottom of column to '*' for closed limitation line
+      image.setPixel(BarcodeImage.MAX_HEIGHT - 1, col, true);
+      //Loops through array, checks character, and writes to column
+      for(int i = BarcodeImage.MAX_HEIGHT - 2; i > 0; i--) {
+         if(colIndexCounter > -1 || i > BarcodeImage.MAX_HEIGHT - 1) {
+               if(binaryChar[colIndexCounter] == '1')
+                  image.setPixel(i, col, true);
+               else
+                   image.setPixel(i, col, false);
+         }
           else
-             break;
-       }
-       return height;
-    }
-    /*
-     * Helper method for generateImageFromText() which checks
-     * if there is a '*' or ' ' and writes the character to
-     * the column.
-     */
-    private boolean writeCharToCol(int col, int code) {
-        /*
-         * Converts code to binary string, then to character array
-         * to allow us to loop through and check each character
-         */
-        String binaryString = Integer.toBinaryString(code);
-        char[] binaryChar = new char[binaryString.length()];
-        binaryChar = binaryString.toCharArray();
-        //Counter to keep track of place in column, starting from bottom
-        int colIndexCounter = binaryChar.length;
-        //Set bottom of column to '*' for closed limitation line
-        image.setPixel(BarcodeImage.MAX_HEIGHT - 1, col, true);
-        //Loops through array, checks character, and writes to column
-        for(int i = BarcodeImage.MAX_HEIGHT - 2; i > 0; i--) {
-            if(colIndexCounter > -1 || i > BarcodeImage.MAX_HEIGHT - 1) {
-                if(binaryChar[colIndexCounter] == '1')
-                    image.setPixel(i, col, true);
-                else
-                    image.setPixel(i, col, false);
-            }
-            else
-                image.setPixel(i, col, false);
-            colIndexCounter--;
-        }
-        return true;
-    }
+             image.setPixel(i, col, false);
+         colIndexCounter--;
+      }
+      return true;
+   }
+   
+   //Helper method for clearing image by setting all elements to false
+   private void clearImage() {
+      for(int i = 0; i < BarcodeImage.MAX_HEIGHT; i++) {
+         for(int j = 0; j < BarcodeImage.MAX_WIDTH; j++)
+            image.setPixel(i, j, false);
+      }
+   }
 
     public int getActualWidth() { return actualWidth; }
     public int getActualHeight() { return actualHeight; }
@@ -205,11 +212,7 @@ public class DataMatrix implements BarcodeIO {
 
         BarcodeImage bc = new BarcodeImage(sImageIn);
         DataMatrix dm = new DataMatrix(bc);
-        dm.displayRawImage();
-
-        System.out.println(dm.getActualHeight()+" : "+dm.getActualWidth());
-
-
+        
     /*
         // First secret message
         dm.translateImageToText();
