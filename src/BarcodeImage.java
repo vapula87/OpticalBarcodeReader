@@ -31,7 +31,7 @@ class BarcodeImage implements Cloneable
             {
                if (index >= 0 && col < strData[index].length())
                {
-                  if (strData[index].charAt(col) == ' ')
+                  if (strData[index].charAt(col) == DataMatrix.WHITE_CHAR)
                      setPixel(row, col, false);
                   else setPixel(row, col, true);
                }
@@ -74,10 +74,10 @@ class BarcodeImage implements Cloneable
          {
             if (imageData[i][j])
             {
-               System.out.print('*');
+               System.out.print(DataMatrix.BLACK_CHAR);
             } else
             {
-               System.out.print(' ');
+               System.out.print(DataMatrix.WHITE_CHAR);
             }
          }
          System.out.println();
