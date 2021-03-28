@@ -1,6 +1,7 @@
 public class DataMatrix implements BarcodeIO {
    public static final char BLACK_CHAR = '*';
    public static final char WHITE_CHAR = ' ';
+   public static final int MAX_BARCODE_HEIGHT = 10;
    private BarcodeImage image;
    private String text;
    private int actualWidth, actualHeight;
@@ -47,7 +48,7 @@ public class DataMatrix implements BarcodeIO {
 
     @Override
     public boolean generateImageFromText() {
-       //TODO
+       //TODO Katie
        writeCharToCol(0, 0);
        return false;
     }
@@ -69,15 +70,45 @@ public class DataMatrix implements BarcodeIO {
     }
     
     private void cleanImage() {
-        //TODO Michael
+        boolean found = false;
+        for (int i = BarcodeImage.MAX_HEIGHT-1; i >= 0; i--) {
+            for (int j = 0; j < BarcodeImage.MAX_WIDTH-1; j++) {
+                if (image.getPixel(i,j)) {
+                    moveImageToLowerLeft(i,j);
+                    found = true;
+                    break;
+                }
+            }
+            if (found) break;
+        }
+    }
+    private void moveImageToLowerLeft(int startingRow,int startingCol) {
+       int rowTracker = BarcodeImage.MAX_HEIGHT-1, colTracker = 0;
+        for (int i = startingRow; i > (startingRow-MAX_BARCODE_HEIGHT); i--) {
+            for (int j = startingCol; j < BarcodeImage.MAX_WIDTH; j++) {
+                image.setPixel(rowTracker,colTracker++,image.getPixel(i,j));
+                image.setPixel(i,j,false);
+            }
+            rowTracker--;
+            colTracker = 0;
+        }
+    }
+    private void clearImage() {
+        for (int i = 0; i < BarcodeImage.MAX_HEIGHT; i++) {
+            for (int j = 0; j < BarcodeImage.MAX_WIDTH; j++)
+                image.setPixel(i,j,false);
+        }
+    }
+    private void displayRawImage() {
+       image.displayToConsole();
     }
     
     //Computes and returns width of image counting from bottom left
     private int computeSignalWidth() {
        int width = 0;
        for (int i = 0; i < BarcodeImage.MAX_WIDTH; i++) {
-          if(image.getPixel(BarcodeImage.MAX_WIDTH - 1, i))
-             width++;
+          if(image.getPixel(BarcodeImage.MAX_HEIGHT - 1, i))
+              width++;
           else
              break;
        }
@@ -87,7 +118,7 @@ public class DataMatrix implements BarcodeIO {
     //Computes and returns height of image counting from bottom left
     private int computeSignalHeight() {
        int height = 0;
-       for (int i = 0; i < BarcodeImage.MAX_HEIGHT; i++) {
+       for (int i = BarcodeImage.MAX_HEIGHT-1; i >= 0; i--) {
           if(image.getPixel(i, 0))
              height++;
           else
@@ -151,7 +182,6 @@ public class DataMatrix implements BarcodeIO {
 
                 };
 
-
         String[] sImageIn_2 =
                 {
                         "                                          ",
@@ -175,7 +205,12 @@ public class DataMatrix implements BarcodeIO {
 
         BarcodeImage bc = new BarcodeImage(sImageIn);
         DataMatrix dm = new DataMatrix(bc);
+        dm.displayRawImage();
 
+        System.out.println(dm.getActualHeight()+" : "+dm.getActualWidth());
+
+
+    /*
         // First secret message
         dm.translateImageToText();
         dm.displayTextToConsole();
@@ -193,8 +228,6 @@ public class DataMatrix implements BarcodeIO {
         dm.generateImageFromText();
         dm.displayTextToConsole();
         dm.displayImageToConsole();
-
-
+     */
     }
-
 }
