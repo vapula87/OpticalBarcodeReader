@@ -58,7 +58,10 @@ class BarcodeImage implements Cloneable
       }
       return false;
    }
-   //checkSize to make sure that the Max height and width aren't more than the max height and width
+   /*
+    * checkSize to make sure that the Max height and width aren't more than
+    * the max height and width
+    */
    private boolean checkSize(String[] data)
    {
       if (data != null)

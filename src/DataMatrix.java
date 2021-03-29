@@ -48,14 +48,23 @@ public class DataMatrix implements BarcodeIO {
 
    @Override
    public boolean generateImageFromText() {
-      //TODO Katie
       clearImage();
       char[] textCharArray = text.toCharArray();
-      final int MAX_ACTUAL_HEIGHT = 10;
-      for(int i = BarcodeImage.MAX_HEIGHT - 1; i > MAX_ACTUAL_HEIGHT; i--) {
-         
+      
+      if(textCharArray.length > 0) {
+         //Write text to image
+         for(int i = 0; i < textCharArray.length; i++) {
+            int charValue = (int)textCharArray[i];
+            writeCharToCol(i + 1, charValue);
+         }
+         writeLimitationLines(textCharArray);
+         //Set image width and height
+         actualWidth = computeSignalWidth();
+         actualHeight = computeSignalHeight();
+         return true;
       }
-      return false;
+      else
+         return false;
    }
 
    @Override
@@ -71,7 +80,8 @@ public class DataMatrix implements BarcodeIO {
    private double[] getEncodings() {
        double[] encodings = new double[getActualWidth()-2];
        double base = 2, power = 0;
-       int arrayTracker = 0, endRow = BarcodeImage.MAX_HEIGHT-getActualHeight();
+       int arrayTracker = 0, endRow = 
+             BarcodeImage.MAX_HEIGHT-getActualHeight();
        for (int i = 1; i < getActualWidth()-1; i++)
        {
            for (int j = BarcodeImage.MAX_HEIGHT-2; j > endRow; j--)
@@ -118,7 +128,7 @@ public class DataMatrix implements BarcodeIO {
        System.out.println();
    }
 
-    private void cleanImage() {
+   private void cleanImage() {
         boolean found = false;
         for (int i = BarcodeImage.MAX_HEIGHT-1; i >= 0; i--) {
             for (int j = 0; j < BarcodeImage.MAX_WIDTH-1; j++) {
@@ -143,10 +153,6 @@ public class DataMatrix implements BarcodeIO {
             colTracker = 0;
         }
     }
-
-    private void displayRawImage() {
-       image.displayToConsole();
-    }
     
     //Computes and returns width of image counting from bottom left
     private int computeSignalWidth() {
@@ -163,7 +169,7 @@ public class DataMatrix implements BarcodeIO {
     //Computes and returns height of image counting from bottom left
     private int computeSignalHeight() {
        int height = 0;
-       for (int i = BarcodeImage.MAX_HEIGHT-1; i >= 0; i--) {
+       for (int i = BarcodeImage.MAX_HEIGHT - 1; i >= 0; i--) {
           if(image.getPixel(i, 0))
              height++;
          else
@@ -175,33 +181,62 @@ public class DataMatrix implements BarcodeIO {
    /*
     * Helper method for generateImageFromText() which checks
     * if there is a '*' or ' ' and writes the character to
-    * the column.
+    * the column while also writing the bottom limitation line
+    * character.
     */
    private boolean writeCharToCol(int col, int code) {
-      /*
-       * Converts code to binary string, then to character array
-       * to allow us to loop through and check each character
-       */
-      String binaryString = Integer.toBinaryString(code);
-      char[] binaryChar = new char[binaryString.length()];
-      binaryChar = binaryString.toCharArray();
-      //Counter to keep track of place in column, starting from bottom
-      int colIndexCounter = binaryChar.length;
-      //Set bottom of column to '*' for closed limitation line
-      image.setPixel(BarcodeImage.MAX_HEIGHT - 1, col, true);
-      //Loops through array, checks character, and writes to column
-      for(int i = BarcodeImage.MAX_HEIGHT - 2; i > 0; i--) {
-         if(colIndexCounter > -1 || i > BarcodeImage.MAX_HEIGHT - 1) {
-               if(binaryChar[colIndexCounter] == '1')
+      if(col > 0 && col < BarcodeImage.MAX_WIDTH && code > 0) {
+         //Convert code to binary string
+         String binaryString = Integer.toBinaryString(code);
+         
+         //Counter to keep track of place in column, starting from bottom
+         int colIndexCounter = binaryString.length() - 1;
+         
+         //Set bottom of column to '*' for closed limitation line
+         image.setPixel(BarcodeImage.MAX_HEIGHT - 1, col, true);
+         
+         //Loops through string, checking each character, and writes to column
+         for(int i = BarcodeImage.MAX_HEIGHT - 2; i > 0; i--) {
+            if(colIndexCounter > -1 || i > BarcodeImage.MAX_HEIGHT - 1) {
+               if(binaryString.charAt(colIndexCounter) == '1')
                   image.setPixel(i, col, true);
                else
-                   image.setPixel(i, col, false);
+                  image.setPixel(i, col, false);
+            }
+            else
+               image.setPixel(i, col, false);
+            colIndexCounter--;
          }
-          else
-             image.setPixel(i, col, false);
-         colIndexCounter--;
+         return true;
       }
-      return true;
+      else
+         return false;
+   }
+   
+   /*
+    * Helper method for generateImageFromText() which writes
+    * the left limitation line and the top and right open
+    * borderlines.
+    */
+   private void writeLimitationLines(char[] textCharArray) {
+      //Write left limitation line and right open borderline
+      for(int i = BarcodeImage.MAX_HEIGHT - 1; 
+            i > BarcodeImage.MAX_HEIGHT - MAX_BARCODE_HEIGHT - 1; i--) {
+         image.setPixel(i, 0, true);
+         if(i % 2 == 1)
+            image.setPixel(i, textCharArray.length + 1, true);
+         else
+            image.setPixel(i, textCharArray.length + 1, false);
+      }
+      //Write top open borderline
+      for(int i = 0; i < textCharArray.length + 2; i++) {
+         if(i % 2 == 0)
+            image.setPixel(BarcodeImage.MAX_HEIGHT - 
+                  MAX_BARCODE_HEIGHT, i, true);
+         else
+            image.setPixel(BarcodeImage.MAX_HEIGHT - 
+                  MAX_BARCODE_HEIGHT, i, false);
+      }
    }
 
    //Helper method for clearing image by setting all elements to false
