@@ -1,3 +1,6 @@
+/**
+ * An interface for the DataMatrix class.
+ */
 public interface BarcodeIO {
     public boolean scan(BarcodeImage bc);
     public boolean readText(String text);
