@@ -1,3 +1,14 @@
+/**
+ * Lab 4: Optical Barcode
+ * CST 338: Software Design (Spring B 2021)
+ *
+ * Takes a barcode image as input (in string format)
+ * for analysis and decoding. Can also create a
+ * barcode from user input. Uses a pseudo-datamatrix
+ * data structure to hold barcode information.
+ *
+ * @author Katherine Vickstrom, Deen Altawil, Mike Limpus, Michael Hackett
+ */
 public class DataMatrix implements BarcodeIO {
    public static final char BLACK_CHAR = '*';
    public static final char WHITE_CHAR = ' ';
@@ -64,8 +75,7 @@ public class DataMatrix implements BarcodeIO {
            return false;
        double[] encodings = getEncodings();
        String decodedMessage = decodeMessage(encodings);
-       readText(decodedMessage);
-       return true;
+       return readText(decodedMessage);
    }
 
    private double[] getEncodings() {
