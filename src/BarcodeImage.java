@@ -11,6 +11,10 @@ class BarcodeImage implements Cloneable
    public static final int MAX_HEIGHT = 30;
    public static final int MAX_WIDTH = 65;
    private boolean[][] imageData;
+
+   /**
+    * Initialize an empty barcode image.
+    */
    public BarcodeImage()
    {
       imageData = new boolean[MAX_HEIGHT][MAX_WIDTH];
@@ -19,7 +23,13 @@ class BarcodeImage implements Cloneable
             imageData[i][j] = false;
       }
    }
-   //Initiate the string to get the data
+
+   /**
+    * Validates and copies an incoming barcode image.
+    * Packs it into the bottom left of a boolean array.
+    *
+    * @param strData The incoming image
+    */
    public BarcodeImage(String[] strData)
    {
       this();
@@ -41,14 +51,24 @@ class BarcodeImage implements Cloneable
       }
 
    }
-   //getPixel to get the return value of the data
+
+   /**
+    * Returns data from the specified location.
+    *
+    * @return false if no pixel at location.
+    */
    public boolean getPixel(int row, int col)
    {
       if (imageData != null && row < MAX_HEIGHT && col < MAX_WIDTH)
          return imageData[row][col];
       return false;
    }
-   //setPixel to set the row and col for the data
+
+   /**
+    * Sets the value at the specified location.
+    *
+    * @return false if the location does not exist.
+    */
    public boolean setPixel(int row, int col, boolean value)
    {
       if (row < MAX_HEIGHT && col < MAX_WIDTH)
@@ -58,9 +78,12 @@ class BarcodeImage implements Cloneable
       }
       return false;
    }
-   /*
-    * checkSize to make sure that the Max height and width aren't more than
-    * the max height and width
+
+   /**
+    * Ensures the incoming data is not null and
+    * is within specified boundaries.
+    *
+    * @return false if the data is invalid.
     */
    private boolean checkSize(String[] data)
    {
@@ -68,7 +91,10 @@ class BarcodeImage implements Cloneable
          return data.length < MAX_HEIGHT && data[0].length() < MAX_WIDTH;
       return false;
    }
-   //Display the data to the console
+
+   /**
+    *  Displays the image data to the console
+    */
    public void displayToConsole()
    {
       for (int i = 0; i < MAX_HEIGHT; i++)
@@ -86,7 +112,12 @@ class BarcodeImage implements Cloneable
          System.out.println();
       }
    }
-   //Clones the objective of the Barcode Image
+
+   /**
+    * Clones the objective of the Barcode Image
+    *
+    * @throws CloneNotSupportedException
+    */
    public Object clone() throws CloneNotSupportedException
    {
       try
